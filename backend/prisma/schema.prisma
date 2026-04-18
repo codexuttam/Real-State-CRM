@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  AGENT
+  MANAGER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CLOSED
+  LOST
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  SOLD
+  RENTED
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum DealStage {
+  NEGOTIATION
+  AGREEMENT
+  CLOSED
+}
+
+enum ActivityType {
+  CALL
+  SMS
+  EMAIL
+  MEETING
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          UserRole       @default(AGENT)
+  leads         Lead[]         @relation("AgentLeads")
+  properties    Property[]     @relation("AgentProperties")
+  clients       Client[]       @relation("AgentClients")
+  deals         Deal[]         @relation("AgentDeals")
+  activities    Activity[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Lead {
+  id          String     @id @default(uuid())
+  name        String
+  phone       String?
+  email       String?
+  budget      Float?
+  preferences String?
+  status      LeadStatus @default(NEW)
+  source      String?
+  agent       User?      @relation("AgentLeads", fields: [agentId], references: [id])
+  agentId     String?
+  deals       Deal[]
+  activities  Activity[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Property {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  location    String
+  price       Float
+  size        Float?
+  amenities   String?
+  status      PropertyStatus @default(AVAILABLE)
+  type        PropertyType
+  images      String[]
+  agent       User?          @relation("AgentProperties", fields: [agentId], references: [id])
+  agentId     String?
+  deals       Deal[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Client {
+  id         String     @id @default(uuid())
+  name       String
+  email      String?
+  phone      String?
+  notes      String?
+  agent      User?      @relation("AgentClients", fields: [agentId], references: [id])
+  agentId    String?
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Deal {
+  id          String    @id @default(uuid())
+  title       String
+  stage       DealStage @default(NEGOTIATION)
+  amount      Float
+  commission  Float?
+  lead        Lead      @relation(fields: [leadId], references: [id])
+  leadId      String
+  property    Property  @relation(fields: [propertyId], references: [id])
+  propertyId  String
+  agent       User      @relation("AgentDeals", fields: [agentId], references: [id])
+  agentId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  type        ActivityType
+  description String
+  timestamp   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  lead        Lead?        @relation(fields: [leadId], references: [id])
+  leadId      String?
+  client      Client?      @relation(fields: [clientId], references: [id])
+  clientId    String?
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  message   String
+  read      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String?
+  createdAt DateTime @default(now())
+}
