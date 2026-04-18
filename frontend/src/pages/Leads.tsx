@@ -1,4 +1,3 @@
-import React from 'react';
 import { Plus, Search, Filter } from 'lucide-react';
 
 const Leads = () => {
