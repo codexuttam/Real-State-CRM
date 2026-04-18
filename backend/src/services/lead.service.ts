@@ -1,5 +1,6 @@
 import { prisma } from '../index';
 import { NotificationService } from './event.service';
+import { AILeadScorer } from '../utils/ai-scorer';
 
 export class LeadService {
   async createLead(data: any) {
@@ -9,10 +10,15 @@ export class LeadService {
   }
 
   async getAllLeads(filter: any = {}) {
-    return await prisma.lead.findMany({
+    const leads = await prisma.lead.findMany({
       where: filter,
       include: { agent: { select: { name: true, email: true } } },
     });
+    
+    return leads.map(l => ({
+      ...l,
+      aiScore: AILeadScorer.calculateScore(l)
+    }));
   }
 
   async getLeadById(id: string) {
