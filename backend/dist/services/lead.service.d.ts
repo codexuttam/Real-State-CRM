@@ -12,12 +12,12 @@ export declare class LeadService {
         updatedAt: Date;
         agentId: string | null;
     }>;
-    getAllLeads(filter?: any): Promise<({
+    getAllLeads(filter?: any): Promise<{
+        aiScore: number;
         agent: {
             name: string;
             email: string;
         } | null;
-    } & {
         id: string;
         name: string;
         createdAt: Date;
@@ -29,7 +29,7 @@ export declare class LeadService {
         source: string | null;
         updatedAt: Date;
         agentId: string | null;
-    })[]>;
+    }[]>;
     getLeadById(id: string): Promise<({
         deals: {
             id: string;

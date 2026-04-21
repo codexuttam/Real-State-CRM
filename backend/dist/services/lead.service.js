@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadService = void 0;
 const index_1 = require("../index");
 const event_service_1 = require("./event.service");
+const ai_scorer_1 = require("../utils/ai-scorer");
 class LeadService {
     async createLead(data) {
         return await index_1.prisma.lead.create({
@@ -10,10 +11,14 @@ class LeadService {
         });
     }
     async getAllLeads(filter = {}) {
-        return await index_1.prisma.lead.findMany({
+        const leads = await index_1.prisma.lead.findMany({
             where: filter,
             include: { agent: { select: { name: true, email: true } } },
         });
+        return leads.map(l => ({
+            ...l,
+            aiScore: ai_scorer_1.AILeadScorer.calculateScore(l)
+        }));
     }
     async getLeadById(id) {
         return await index_1.prisma.lead.findUnique({

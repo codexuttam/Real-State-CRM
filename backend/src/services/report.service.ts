@@ -30,4 +30,22 @@ export class ReportService {
       agentPerformance
     };
   }
+
+  static async getLeadStats() {
+    const totalLeads = await prisma.lead.count();
+    const statusCounts = await prisma.lead.groupBy({
+      by: ['status'],
+      _count: true,
+    });
+
+    const conversionRate = totalLeads > 0 
+      ? (await prisma.lead.count({ where: { status: 'CLOSED' } }) / totalLeads) * 100 
+      : 0;
+
+    return {
+      totalLeads,
+      statusCounts,
+      conversionRate: conversionRate.toFixed(2) + '%'
+    };
+  }
 }

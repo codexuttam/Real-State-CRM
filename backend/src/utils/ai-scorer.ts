@@ -18,14 +18,17 @@ export class AILeadScorer {
     if (lead.email && lead.phone) score += 20;
     else if (lead.email || lead.phone) score += 10;
 
-    // 3. Source weight (up to 20 points)
+    // 3. Source & Intent (up to 20 points)
     if (lead.source === 'Referral') score += 20;
     else if (lead.source === 'Website') score += 15;
     else if (lead.source === 'Ad') score += 10;
+    
+    // Bonus for detailed preferences
+    if (lead.preferences && lead.preferences.length > 50) score += 10;
 
-    // 4. Activity status (up to 20 points)
-    if (lead.status === 'QUALIFIED') score += 20;
-    else if (lead.status === 'CONTACTED') score += 10;
+    // 4. Activity status (up to 10 points)
+    if (lead.status === 'QUALIFIED') score += 10;
+    else if (lead.status === 'CONTACTED') score += 5;
 
     return Math.min(score, 100);
   }

@@ -1,13 +1,18 @@
-import { Users, Building2, Briefcase, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Briefcase, TrendingUp, DollarSign, Loader2, PieChart as PieIcon, BarChart as BarIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import api from '../services/api';
 
-const StatCard = ({ icon, label, value, trend }: any) => (
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#a855f7', '#06b6d4'];
+
+const StatCard = ({ icon, label, value, trend, color }: any) => (
   <motion.div 
     whileHover={{ y: -5 }}
     className="glass glass-card"
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-      <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', color: 'var(--primary)' }}>
+      <div style={{ padding: '0.8rem', background: `${color || 'var(--primary)'}15`, borderRadius: '12px', color: color || 'var(--primary)' }}>
         {icon}
       </div>
       <span style={{ color: 'var(--success)', fontSize: '0.8rem', display: 'flex', alignItems: 'center' }}>
@@ -21,6 +26,55 @@ const StatCard = ({ icon, label, value, trend }: any) => (
 );
 
 const Dashboard = () => {
+  const [reportData, setReportData] = useState<any>(null);
+  const [leadStats, setLeadStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [salesRes, leadRes] = await Promise.all([
+          api.get('/reports/sales'),
+          api.get('/reports/leads')
+        ]);
+        setReportData(salesRes.data);
+        setLeadStats(leadRes.data);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+        <Loader2 className="animate-spin" size={48} color="var(--primary)" />
+        <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Calculating metrics...</p>
+      </div>
+    );
+  }
+
+  const stats = [
+    { label: 'Total Leads', value: leadStats?.totalLeads || 0, icon: <Users size={24} />, trend: '+12%', color: '#6366f1' },
+    { label: 'Conversion Rate', value: leadStats?.conversionRate || '0%', icon: <TrendingUp size={24} />, trend: '+2%', color: '#10b981' },
+    { label: 'Active Deals', value: reportData?.summary?.dealCount || 0, icon: <Briefcase size={24} />, trend: '+8%', color: '#f59e0b' },
+    { label: 'Total Revenue', value: `$${(reportData?.summary?.totalRevenue || 0).toLocaleString()}`, icon: <DollarSign size={24} />, trend: '+24%', color: '#ef4444' },
+  ];
+
+  const agentData = Object.entries(reportData?.agentPerformance || {}).map(([name, data]: any) => ({
+    name,
+    revenue: data.revenue,
+    deals: data.deals
+  }));
+
+  const pieData = leadStats?.statusCounts?.map((status: any) => ({
+    name: status.status,
+    value: status._count
+  }));
+
   return (
     <div style={{ padding: '2rem' }}>
       <header style={{ marginBottom: '2.5rem' }}>
@@ -29,32 +83,65 @@ const Dashboard = () => {
       </header>
 
       <div className="dashboard-grid">
-        <StatCard icon={<Users size={24} />} label="Total Leads" value="128" trend="+12%" />
-        <StatCard icon={<Building2 size={24} />} label="Active Properties" value="45" trend="+5%" />
-        <StatCard icon={<Briefcase size={24} />} label="Deals In Pipeline" value="€2.4M" trend="+24%" />
-        <StatCard icon={<Users size={24} />} label="Conversion Rate" value="18.5%" trend="+2%" />
+        {stats.map((stat, i) => (
+          <StatCard key={i} {...stat} />
+        ))}
       </div>
 
       <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
-        <div className="glass glass-card" style={{ height: '400px' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Revenue Trends</h3>
-          <div style={{ height: '300px', display: 'flex', alignItems: 'flex-end', gap: '1rem', paddingBottom: '1rem' }}>
-            {/* Simple Bar Chart Placeholder */}
-            {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-              <div key={i} style={{ flex: 1, background: 'linear-gradient(to top, var(--primary), var(--secondary))', height: `${h}%`, borderRadius: '6px 6px 0 0', opacity: 0.8 }} />
-            ))}
+        <div className="glass glass-card" style={{ minHeight: '450px', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+            <BarIcon size={20} color="var(--primary)" />
+            <h3 style={{ margin: 0 }}>Agent Performance (Revenue)</h3>
+          </div>
+          <div style={{ height: '320px', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={agentData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
+                <Tooltip 
+                  contentStyle={{ background: 'rgba(20,20,20,0.9)', border: '1px solid var(--glass-border)', borderRadius: '10px' }}
+                  itemStyle={{ color: 'white' }}
+                />
+                <Bar dataKey="revenue" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-        <div className="glass glass-card">
-          <h3 style={{ marginBottom: '1.5rem' }}>Recent Activities</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} style={{ display: 'flex', gap: '1rem', padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: '10px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', marginTop: '6px' }} />
-                <div>
-                  <p style={{ fontSize: '0.9rem' }}>Lead "John Doe" updated to <b>Qualified</b></p>
-                  <small style={{ color: 'var(--text-muted)' }}>2 hours ago</small>
-                </div>
+        
+        <div className="glass glass-card" style={{ minHeight: '450px', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+            <PieIcon size={20} color="var(--secondary)" />
+            <h3 style={{ margin: 0 }}>Lead Status Distribution</h3>
+          </div>
+          <div style={{ height: '320px', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData?.map((_: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ background: 'rgba(20,20,20,0.9)', border: '1px solid var(--glass-border)', borderRadius: '10px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+            {pieData?.map((entry: any, index: number) => (
+              <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: COLORS[index % COLORS.length] }} />
+                <span>{entry.name}</span>
               </div>
             ))}
           </div>
