@@ -4,7 +4,7 @@ services:
     name: real-estate-crm-api
     env: docker
     dockerContext: ./backend
-    dockerfile: Dockerfile
+    dockerfilePath: Dockerfile
     plan: starter # Change to 'free' if preferred, but 'starter' is more reliable
     healthCheckPath: /health
     envVars:
