@@ -21,5 +21,6 @@ router.use('/reports', reportRoutes);
 
 // Webhooks (e.g. from n8n)
 router.post('/webhooks/n8n', WebhookController.handleN8N);
+router.post('/webhook/n8n', WebhookController.handleN8N); // Backup for singular spelling
 
 export default router;
