@@ -1,15 +1,12 @@
 #!/bin/sh
 
-# Exit immediately if a command exits with a non-zero status.
-set -e
-
+# Apply database migrations
 echo "Applying database migrations..."
 npx prisma migrate deploy
 
-# Optional: Automatic seeding for first-time cloud setup
-echo "Checking if database needs seeding..."
-# This runs the seed script to ensure the dashboard looks great immediately
-npx prisma db seed || echo "Seeding skipped or already completed."
+# Run seeding (errors here won't stop the app from starting)
+echo "Attempting to seed database..."
+npx prisma db seed || echo "Seeding skipped or already done."
 
 echo "Starting application..."
 npm start

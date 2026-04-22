@@ -49,9 +49,12 @@ async function main() {
   ];
 
   for (const p of properties) {
-    await prisma.property.create({
-      data: { ...p, agentId: admin.id }
-    });
+    const existing = await prisma.property.findFirst({ where: { title: p.title } });
+    if (!existing) {
+      await prisma.property.create({
+        data: { ...p, agentId: admin.id }
+      });
+    }
   }
 
   // 3. Create Smart Leads (Some already enriched)
@@ -82,8 +85,13 @@ async function main() {
 
   const createdLeads = [];
   for (const l of leads) {
-    const lead = await prisma.lead.create({ data: l });
-    createdLeads.push(lead);
+    const existing = await prisma.lead.findFirst({ where: { email: l.email } });
+    if (!existing) {
+      const lead = await prisma.lead.create({ data: l });
+      createdLeads.push(lead);
+    } else {
+      createdLeads.push(existing);
+    }
   }
 
   // 4. Create Deals
