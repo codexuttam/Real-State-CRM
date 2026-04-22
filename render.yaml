@@ -4,7 +4,7 @@ services:
     name: real-estate-crm-api
     env: docker
     dockerContext: ./backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: backend/Dockerfile
     plan: free
     healthCheckPath: /health
     envVars:
@@ -24,7 +24,7 @@ services:
     name: real-estate-crm-dashboard
     env: static
     buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/dist
+    staticPublishPath: dist
     rootDir: ./frontend
     envVars:
       - key: VITE_API_URL
