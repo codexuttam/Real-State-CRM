@@ -37,4 +37,4 @@ databases:
   # 3. Managed PostgreSQL Database
   - name: real-estate-crm-db
     plan: free
-    region: singapore # Choose your closest region
+    region: oregon
