@@ -70,6 +70,8 @@ model Lead {
   preferences String?
   status      LeadStatus @default(NEW)
   source      String?
+  aiSummary   String?
+  aiScore     Int?
   agent       User?      @relation("AgentLeads", fields: [agentId], references: [id])
   agentId     String?
   deals       Deal[]

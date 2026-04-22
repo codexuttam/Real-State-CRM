@@ -2,30 +2,39 @@ import { prisma } from '../index';
 
 export class ReportService {
   static async getSalesReport() {
-    const deals = await prisma.deal.findMany({
-      where: { stage: 'CLOSED' },
+    const allDeals = await prisma.deal.findMany({
       include: { agent: { select: { name: true } } },
     });
 
-    const totalRevenue = deals.reduce((sum, deal) => sum + deal.amount, 0);
-    const totalCommission = deals.reduce((sum, deal) => sum + (deal.commission || 0), 0);
+    const closedDeals = allDeals.filter(d => d.stage === 'CLOSED');
+    const pipelineDeals = allDeals.filter(d => d.stage !== 'CLOSED');
 
-    // Group by agent
-    const agentPerformance = deals.reduce((acc: any, deal) => {
+    const totalRevenue = closedDeals.reduce((sum, deal) => sum + deal.amount, 0);
+    const pipelineValue = pipelineDeals.reduce((sum, deal) => sum + deal.amount, 0);
+    const totalCommission = closedDeals.reduce((sum, deal) => sum + (deal.commission || 0), 0);
+
+    // Group by agent (using all deals for activity, but revenue for closed)
+    const agentPerformance = allDeals.reduce((acc: any, deal) => {
       const agentName = deal.agent.name;
       if (!acc[agentName]) {
-        acc[agentName] = { revenue: 0, deals: 0 };
+        acc[agentName] = { revenue: 0, deals: 0, pipeline: 0 };
       }
-      acc[agentName].revenue += deal.amount;
-      acc[agentName].deals += 1;
+      if (deal.stage === 'CLOSED') {
+        acc[agentName].revenue += deal.amount;
+        acc[agentName].deals += 1;
+      } else {
+        acc[agentName].pipeline += deal.amount;
+      }
       return acc;
     }, {});
 
     return {
       summary: {
         totalRevenue,
+        pipelineValue,
         totalCommission,
-        dealCount: deals.length,
+        dealCount: closedDeals.length,
+        pipelineCount: pipelineDeals.length,
       },
       agentPerformance
     };

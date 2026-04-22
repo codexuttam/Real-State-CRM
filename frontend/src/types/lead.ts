@@ -21,6 +21,7 @@ export interface Lead {
     email: string;
   };
   aiScore?: number;
+  aiSummary?: string;
   createdAt: string;
   updatedAt: string;
 }

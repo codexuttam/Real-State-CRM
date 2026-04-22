@@ -140,7 +140,21 @@ const Leads = () => {
                 <tr key={lead.id} style={{ borderTop: '1px solid var(--glass-border)' }}>
                   <td style={{ padding: '1.2rem' }}>
                     <div style={{ fontWeight: 500 }}>{lead.name}</div>
-                    <small style={{ color: 'var(--text-muted)' }}>Source: {lead.source || 'N/A'}</small>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Source: {lead.source || 'N/A'}</div>
+                    {lead.aiSummary && (
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#10b981', 
+                        marginTop: '4px', 
+                        padding: '4px 8px', 
+                        background: 'rgba(16, 185, 129, 0.1)', 
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        maxWidth: '300px'
+                      }}>
+                        ✨ {lead.aiSummary}
+                      </div>
+                    )}
                   </td>
                   <td>
                     <span style={{ 

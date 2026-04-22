@@ -26,7 +26,7 @@ const Sidebar = () => {
             key={link.to}
             to={link.to}
             className={({ isActive }) => `btn ${isActive ? 'btn-primary' : ''}`}
-            style={{ width: '100%', marginBottom: '0.8rem', justifyContent: 'flex-start', background: 'transparent' }}
+            style={{ width: '100%', marginBottom: '0.8rem', justifyContent: 'flex-start' }}
           >
             {link.icon}
             <span>{link.label}</span>

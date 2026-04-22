@@ -10,14 +10,18 @@ export class LeadService {
   }
 
   async getAllLeads(filter: any = {}) {
+    const { take, orderBy, ...where } = filter;
+    
     const leads = await prisma.lead.findMany({
-      where: filter,
+      where,
+      take: take ? parseInt(take) : undefined,
+      orderBy: orderBy === 'recent' ? { createdAt: 'desc' } : undefined,
       include: { agent: { select: { name: true, email: true } } },
     });
     
     return leads.map(l => ({
       ...l,
-      aiScore: AILeadScorer.calculateScore(l)
+      aiScore: l.aiScore || AILeadScorer.calculateScore(l)
     }));
   }
 
