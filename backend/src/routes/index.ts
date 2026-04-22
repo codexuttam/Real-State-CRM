@@ -20,7 +20,12 @@ router.use('/properties', propertyRoutes);
 router.use('/reports', reportRoutes);
 
 // Webhooks (e.g. from n8n)
-router.post('/webhooks/n8n', WebhookController.handleN8N);
-router.post('/webhook/n8n', WebhookController.handleN8N); // Backup for singular spelling
+// This handles /webhooks/n8n, /webhook/n8n, and versions with trailing slashes
+router.post(['/webhooks/n8n', '/webhooks/n8n/', '/webhook/n8n', '/webhook/n8n/'], WebhookController.handleN8N);
+
+// GET route for easy testing in browser
+router.get(['/webhooks/n8n', '/webhook/n8n'], (req, res) => {
+  res.json({ message: 'Webhook endpoint is active. Use POST to send data.' });
+});
 
 export default router;
