@@ -5,7 +5,7 @@ services:
     env: docker
     dockerContext: ./backend
     dockerfilePath: Dockerfile
-    plan: starter # Change to 'free' if preferred, but 'starter' is more reliable
+    plan: free
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
@@ -36,5 +36,5 @@ services:
 databases:
   # 3. Managed PostgreSQL Database
   - name: real-estate-crm-db
-    plan: starter # Change to 'free' if preferred (90 days limit)
+    plan: free
     region: singapore # Choose your closest region
