@@ -6,6 +6,7 @@ import propertyRoutes from './property.routes';
 import reportRoutes from './report.routes';
 import authRoutes from './auth.routes';
 import uploadRoutes from './upload.routes';
+import aiRoutes from './ai.routes';
 import { WebhookController } from '../controllers/webhook.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -18,6 +19,7 @@ router.use('/clients', clientRoutes);
 router.use('/deals', dealRoutes);
 router.use('/properties', propertyRoutes);
 router.use('/reports', reportRoutes);
+router.use('/ai', aiRoutes);
 
 // Root API confirmation
 router.get('/', (req, res) => {

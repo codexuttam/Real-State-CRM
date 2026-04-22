@@ -26,6 +26,16 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 };
 
+export const authenticateAI = (req: Request, res: Response, next: NextFunction) => {
+  const apiKey = req.header('x-n8n-api-key');
+  const validKey = process.env.N8N_API_KEY || 'n8n_integration_secret_99';
+
+  if (!apiKey || apiKey !== validKey) {
+    return res.status(401).json({ message: 'Invalid AI API Key' });
+  }
+  next();
+};
+
 export const authorize = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
